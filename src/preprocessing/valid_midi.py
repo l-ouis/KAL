@@ -61,15 +61,18 @@ for root, dirs, files in os.walk(raw_data_path):
                     part1_data = []
                     part2_data = []
 
+                    # for now a token duration will just be a 16th note
                     for myPart, data_list in [(part1, part1_data), (part2, part2_data)]:
                         for measure in myPart:
                             notes = measure.notes
                             measure_tempo = get_tempo(measure.offset, squash_metronome_boundaries)
                             measure_duration = measure.barDuration.quarterLength
+                            new_token_measure_length = measure_duration * 4
                             beats_per_second = measure_tempo / 60
                             seconds_per_beat = 1 / beats_per_second # Need 6 of these per beat!
                             tokens_per_beat = seconds_per_beat * 6
-                            measure_duration_tokens = measure_duration * tokens_per_beat
+                            # measure_duration_tokens = measure_duration * tokens_per_beat
+                            measure_duration_tokens = new_token_measure_length
 
                             # Make empty np array placeholder
                             measure_np_array = np.zeros((int(measure_duration_tokens), 5, 3))
@@ -80,8 +83,10 @@ for root, dirs, files in os.walk(raw_data_path):
                                 # Be wary that we may have a chord
                                 note_duration = n.duration.quarterLength
                                 note_offset = n.offset
-                                note_offset_tokens = note_offset * tokens_per_beat
-                                note_duration_tokens = note_duration * tokens_per_beat
+                                # note_offset_tokens = note_offset * tokens_per_beat
+                                # note_duration_tokens = note_duration * tokens_per_beat
+                                note_offset_tokens = note_offset * 4
+                                note_duration_tokens = note_duration * 4
                                 note_volume = n.volume.velocity
 
                                 pitches = [p.midi for p in n.pitches]

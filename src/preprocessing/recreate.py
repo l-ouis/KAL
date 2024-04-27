@@ -18,8 +18,9 @@ for double_midi_channel in range(5):
         #         valid_notes.append(potential_note)
         this_chord = chord.Chord()
         for valid_note in valid_notes:
-            duration_in_120bpm = valid_note[1] * (1/3)
-            this_note = note.Note(int(valid_note[0]), quarterLength=duration_in_120bpm)
+            #duration_in_120bpm = valid_note[1] * (1/3)
+            duration_in_4ths = valid_note[1] / 4
+            this_note = note.Note(int(valid_note[0]), quarterLength=duration_in_4ths)
             this_note.volume.velocity = valid_note[2]
             this_chord.add(this_note)
         channel_1.insert(offset / 3, this_chord)
@@ -35,8 +36,9 @@ for double_midi_channel in range(5):
         #         valid_notes.append(potential_note)
         this_chord = chord.Chord()
         for valid_note in valid_notes:
-            duration_in_120bpm = valid_note[1] * (1/3)
-            this_note = note.Note(int(valid_note[0]), quarterLength=duration_in_120bpm)
+            #duration_in_120bpm = valid_note[1] * (1/3)
+            duration_in_4ths = valid_note[1] / 4
+            this_note = note.Note(int(valid_note[0]), quarterLength=duration_in_4ths)
             this_note.volume.velocity = valid_note[2]
             this_chord.add(this_note)
         channel_2.insert(offset / 3, this_chord)
