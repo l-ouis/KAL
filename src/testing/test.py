@@ -13,6 +13,8 @@ with open('final_label_ids.pkl', 'rb') as f:
 with open('tokenizer.pkl', 'rb') as f:
     tokenizer = pickle.load(f)
 
+tokenizer.vocab['Start'] = 258
+
 print("Length of pickled input and label lists:")
 print(len(input_tokens_list))
 print(len(label_tokens_list))
@@ -27,7 +29,7 @@ for i in range(1):
     label_tokens = np.array(label_tokens_list[i])
 
 # Load the model
-model = tf.keras.models.load_model('src/saved_model')
+model = tf.keras.models.load_model('src/saved_model_two')
 
 def gen_caption_temperature(model, image_embedding, wordToIds, padID, temp, window_length):
     """
@@ -38,7 +40,7 @@ def gen_caption_temperature(model, image_embedding, wordToIds, padID, temp, wind
     # unk_token = wordToIds['<unk>']
     # caption_so_far = [wordToIds['<start>']]
     unk_token = 0
-    caption_so_far = [4]
+    caption_so_far = [258]
     while len(caption_so_far) < window_length:
         caption_input = np.array([caption_so_far + ((window_length - len(caption_so_far)) * [padID])])
         logits = model(np.expand_dims(image_embedding, 0), caption_input[:,:-1])
@@ -46,20 +48,26 @@ def gen_caption_temperature(model, image_embedding, wordToIds, padID, temp, wind
         probs = tf.nn.softmax(logits / temp).numpy()
         next_token = unk_token
         attempts = 0
-        while (next_token == unk_token or next_token == 4) and attempts < 10:
+        while (next_token == unk_token) and attempts < 10:
             next_token = np.random.choice(len(probs), p=probs)
             attempts += 1
         caption_so_far.append(next_token)
     return caption_so_far
 
-temperature = .05
+temperature = .2
 
-output = gen_caption_temperature(model, input_tokens, tokenizer.vocab, 0, temperature, 256)
+print(len(input_tokens))
+output = gen_caption_temperature(model, input_tokens, tokenizer.vocab, 0, temperature, 257)
 
+# Remove the start token so we can decode it
+output = output[1:]
+input_tokens = input_tokens[1:].tolist()
 # Print the output
 print("output")
 print(output)
+print("input")
+print(input_tokens)
 melody = tokenizer.decode([input_tokens])
-melody.dump_midi("test_input.mid")   
+melody.dump_midi("test_input.mid")
 input_midi = tokenizer.decode([output])
 input_midi.dump_midi("test_output.mid")

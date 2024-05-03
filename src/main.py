@@ -71,11 +71,12 @@ def main(args):
     input = np.array(input_tokens)
     label = np.array(label_tokens)
 
-    split = int(l * 0.8)
-    train_input = input[:split]
-    train_label = label[:split]
-    test_input = input[split:]
-    test_label = label[split:]
+    split1 = int(l * 0.6)
+    split2 = int(l * 0.8)
+    train_input = input[split1:split2]
+    train_label = label[split1:split2]
+    test_input = input[split2:]
+    test_label = label[split2:]
     print("Data preprocessed!")
 
     train_input  = train_input
@@ -106,8 +107,8 @@ def main(args):
         # model = ImageCaptionModel(decoder)
 
         # Define the model
-        # Vocab size is 258
-        decoder = TransformerDecoder(vocab_size=258, hidden_size=512, window_size=256)
+        # Vocab size is 259
+        decoder = TransformerDecoder(vocab_size=259, hidden_size=512, window_size=256)
         model = AccompanimentModel(decoder)
         print("Model constructed!")
 
@@ -119,10 +120,13 @@ def main(args):
         
         compile_model(model, args)
         print("Model compiled!")
-        train_model(
+        model_stats = train_model(
             model, train_input, train_label, 0, args, 
             valid = (test_input, test_label)
         )
+        with open('model_stats.pkl', 'wb') as f:
+            pickle.dump(model_stats, f)
+        print("Model statistics saved to model_stats.pkl")
         print("Model trained!")
         # model.fit(train_input, train_label, batch_size=args.batch_size, epochs=args.epochs)
         if args.chkpt_path: 
@@ -136,7 +140,8 @@ def main(args):
             ## Load model for testing. Note that architecture needs to be consistent
             model = load_model(args)
         if not (args.task == 'both' and args.check_valid):
-            test_model(model, test_input, test_label, 0, args)
+            perp, acc = test_model(model, test_input, test_label, 0, args)
+            print(f"Perplexity: {perp}, Accuracy: {acc}")
 
     ##############################################################################
 

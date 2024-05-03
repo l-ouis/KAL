@@ -2,6 +2,7 @@ import numpy as np
 from music21 import *
 import pickle
 from miditok import REMI, TokenizerConfig
+import tensorflow as tf
 
 # 4000 datapoints for now in these pickled lists
 with open('input_tokens.pkl', 'rb') as f:
@@ -16,21 +17,21 @@ print(len(input_tokens_list))
 print(len(label_tokens_list))
 
 print("length of vocab:")
-print(len(tokenizer.vocab))
 print(tokenizer.vocab)
+print(len(tokenizer.vocab))
 
 # Test loop
-for i in range(1):
-    input_tokens = input_tokens_list[i]
-    label_tokens = label_tokens_list[i]
-    # print(input_tokens)
-    print(len(input_tokens[0].events))
-    input_events = input_tokens[0].ids
-    print(input_events)
-    # print(len(input_events))
-    # print(len(set(input_events)))
-    # print(tokenizer.vocab)
-    # print(len(tokenizer.vocab))
+# for i in range(1):
+#     input_tokens = input_tokens_list[i]
+#     label_tokens = label_tokens_list[i]
+#     # print(input_tokens)
+#     print(len(input_tokens[0].events))
+#     input_events = input_tokens[0].ids
+#     print(input_events)
+#     # print(len(input_events))
+#     # print(len(set(input_events)))
+#     print(len(tokenizer.vocab))
+#     # print(len(tokenizer.vocab))
     # print(input_tokens[0].events[15])
     # print(tokenizer.vocab[str(input_tokens[0].events[15])])
     # print(len(input_tokens[0].events))

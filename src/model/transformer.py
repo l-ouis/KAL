@@ -148,8 +148,13 @@ class TransformerBlock(tf.keras.layers.Layer):
 
 
 def positional_encoding(length, depth):
-    pos_enc = 0
-    return pos_enc
+    depth = depth / 2
+    positions = np.arange(length)[:, np.newaxis]
+    depths = np.arange(depth)[np.newaxis, :]/depth
+    angle_rates = 1 / (10000**depths)
+    angle_rads = positions * angle_rates
+    pos_encoding = np.concatenate([np.sin(angle_rads), np.cos(angle_rads)], axis=-1)
+    return tf.cast(pos_encoding, dtype=tf.float32)
 
 
 class PositionalEncoding(tf.keras.layers.Layer):

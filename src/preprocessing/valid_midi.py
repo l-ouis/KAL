@@ -43,18 +43,26 @@ for root, dirs, files in os.walk(raw_data_path):
                     allparts = [part for part in allparts if hasattr(part.first(), 'notes')]
                     part1 = allparts[0]
                     part2 = allparts[1]
-                    part1_data = []
-                    part2_data = []
+                    part1_transpose = []
+                    part2_transpose = []
                     print("Here")
-                    
-                    part1.write('midi', fp='temp_part1.mid')
-                    part2.write('midi', fp='temp_part2.mid')
-                    part1_score = Score('temp_part1.mid')
-                    part2_score = Score('temp_part2.mid')
-                    input_tokens = tokenizer(part1_score)
-                    label_tokens = tokenizer(part2_score)
-                    input_tokens_list.append(input_tokens)
-                    label_tokens_list.append(label_tokens)
+                    # Transpose part1 and part2 to each key in the scale
+                    for i in range(-6, 6):
+                        transposed_part1 = part1.transpose(i)
+                        transposed_part2 = part2.transpose(i)
+                        part1_transpose.append(transposed_part1)
+                        part2_transpose.append(transposed_part2)
+                        tp1_string = 'temp_part1_transpose' + str(i) + '.mid'
+                        tp2_string = 'temp_part2_transpose' + str(i) + '.mid'
+                        transposed_part1.write('midi', fp=tp1_string)
+                        transposed_part2.write('midi', fp=tp2_string)
+                        part1_score = Score(tp1_string)
+                        part2_score = Score(tp2_string)
+                        input_tokens = tokenizer(part1_score)
+                        label_tokens = tokenizer(part2_score)
+                        input_tokens_list.append(input_tokens)
+                        label_tokens_list.append(label_tokens)
+                        print("transposition done for ", file_path, i)
                     # input_midi = tokenizer(input_tokens)
                     # label_midi = tokenizer(label_tokens)
                     # input_midi.dump_midi("out_input.mid")
