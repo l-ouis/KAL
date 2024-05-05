@@ -11,6 +11,7 @@ class AttentionMatrix(tf.keras.layers.Layer):
     def __init__(self, *args, use_mask=False, **kwargs):
         super().__init__(*args, **kwargs)
         self.use_mask = use_mask
+        self.positional_embedding = tf.Variable(tf.random.normal((2 * 256 - 1, 170)))
 
     def call(self, inputs):
         """
@@ -22,6 +23,8 @@ class AttentionMatrix(tf.keras.layers.Layer):
         K, Q = inputs
         window_size_queries = Q.get_shape()[1]  # window size of queries
         window_size_keys    = K.get_shape()[1]  # window size of keys
+        embedding_dim       = Q.get_shape()[2]
+        batch_size          = Q.get_shape()[0]
         # print("I'm here2!")
         # print("input shape:", np.shape(K), np.shape(Q))
         # print("query size n window size", window_size_queries, window_size_keys)
@@ -41,8 +44,21 @@ class AttentionMatrix(tf.keras.layers.Layer):
             atten_score += atten_mask
         attention_weights = tf.nn.softmax(atten_score / np.sqrt(K.get_shape()[2]), axis=-1) #window_size_keys
         # print("I'm here6!")
-        return attention_weights
 
+        # # calculate relative positional encoding here (source: https://medium.com/@ngiengkianyew/what-is-relative-positional-encoding-7e2fbaa3b510)
+        positional_embedding_transposed = tf.transpose(self.positional_embedding)
+        relative_positional_encoding = tf.matmul(Q, positional_embedding_transposed)
+        padding = tf.zeros((batch_size, window_size_queries, 1))
+        rpe_padded = tf.concat([relative_positional_encoding, padding], axis=-1)
+        rpe_padded_flat = tf.reshape(rpe_padded, (tf.shape(rpe_padded)[0], -1))
+        padding_2 = tf.zeros((batch_size, window_size_queries-1))
+        rpe_padded_flat_padded = tf.concat([rpe_padded_flat, padding_2], axis=-1)
+        rpe_padded_flat_padded_reshape = tf.reshape(rpe_padded_flat_padded, [batch_size, window_size_queries+1, 2*window_size_queries-1])
+        rpe_final = rpe_padded_flat_padded_reshape[:, :-1, -window_size_queries:]
+        
+        # print("Attention weights shape", attention_weights.shape)
+        # print("RPE shape", rpe_final.shape)
+        return attention_weights #tf.add(attention_weights, rpe_final)
 
 class AttentionHead(tf.keras.layers.Layer):
     def __init__(self, input_size, output_size, is_self_attention, **kwargs):
@@ -164,13 +180,13 @@ class TransformerBlock(tf.keras.layers.Layer):
 
 
 def positional_encoding(length, depth):
-    depth = depth / 2
-    positions = np.arange(length)[:, np.newaxis]
-    depths = np.arange(depth)[np.newaxis, :]/depth
-    angle_rates = 1 / (10000**depths)
-    angle_rads = positions * angle_rates
-    pos_encoding = np.concatenate([np.sin(angle_rads), np.cos(angle_rads)], axis=-1)
-    return tf.cast(pos_encoding, dtype=tf.float32)
+    min_freq=1e-4
+    position = np.arange(length)
+    freqs = min_freq**(2*(np.arange(depth)//2)/depth)
+    pos_enc = position.reshape(-1,1)*freqs.reshape(1,-1)
+    pos_enc[:, ::2] = np.cos(pos_enc[:, ::2])
+    pos_enc[:, 1::2] = np.sin(pos_enc[:, 1::2])
+    return tf.cast(pos_enc, dtype=tf.float32)
 
 
 class PositionalEncoding(tf.keras.layers.Layer):
@@ -187,7 +203,7 @@ class PositionalEncoding(tf.keras.layers.Layer):
 
     def call(self, x):
         embeddings = self.embedding(x)
-        embeddings = embeddings * tf.sqrt(tf.cast(self.embed_size, dtype=tf.float32))
-        embeddings = tf.add(embeddings, self.pos_encoding)
+        # embeddings = embeddings * tf.sqrt(tf.cast(self.embed_size, dtype=tf.float32))
+        # embeddings = tf.add(embeddings, self.pos_encoding)
         return embeddings
     
