@@ -115,8 +115,14 @@ class TransformerBlock(tf.keras.layers.Layer):
         self.layer_norm2 = tf.keras.layers.LayerNormalization()
         self.layer_norm3 = tf.keras.layers.LayerNormalization()
 
+        self.encoder_atten      = AttentionHead(emb_sz, emb_sz, True)  if not multiheaded else MultiHeadedAttention(emb_sz, True)
+        self.encoder_ff_layer = tf.keras.layers.Dense(emb_sz, activation='relu')
+        self.encoder_layer_norm1 = tf.keras.layers.LayerNormalization()
+        self.encoder_layer_norm2 = tf.keras.layers.LayerNormalization()
+
+
     @tf.function
-    def call(self, inputs, context_sequence):
+    def call(self, outut_embd, input_embd):
         """
         This functions calls a transformer block.
         :param inputs: tensor of shape [BATCH_SIZE x INPUT_SEQ_LENGTH x EMBEDDING_SIZE ]
@@ -127,14 +133,24 @@ class TransformerBlock(tf.keras.layers.Layer):
         # print("shapes:", np.shape(inputs), np.shape(context_sequence))
         # print(context_sequence)
         # print(inputs)
-        masked_attn = self.self_atten(inputs, inputs, inputs)
+        
+        # encoder block 
+        masked_attn = self.encoder_atten(input_embd, input_embd, input_embd)
+        masked_attn = masked_attn + input_embd 
+        masked_attn = self.encoder_layer_norm1(masked_attn)
+        ff = self.encoder_ff_layer(masked_attn)
+        ff = ff + masked_attn
+        encoder_output = self.encoder_layer_norm2(ff)
+
+        masked_attn = self.self_atten(outut_embd, outut_embd, outut_embd)
         # print("got masked_attn")
-        masked_attn = masked_attn + inputs
+        masked_attn = masked_attn + outut_embd
         # print("got masked_attn")
         masked_attn = self.layer_norm1(masked_attn)
         # print("got context_sequence")
 
-        unmasked_attn = self.self_context_atten(context_sequence, context_sequence, masked_attn)
+        # unmasked_attn = self.self_context_atten(context_sequence, context_sequence, masked_attn)
+        unmasked_attn = self.self_context_atten(masked_attn, encoder_output, encoder_output)
         # print("got unmasked_attn")
         unmasked_attn = unmasked_attn + masked_attn
         unmasked_attn = self.layer_norm2(unmasked_attn)

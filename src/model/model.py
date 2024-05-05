@@ -16,6 +16,8 @@ class AccompanimentModel(tf.keras.Model):
         # harmony = tf.keras.layers.Embedding(input_dim=self.decoder.vocab_size, output_dim=self.decoder.hidden_size)(harmony)
         # print("Shapes after embedding")
         # print(np.shape(melody), np.shape(harmony))
+        print("Images shape:", melody.shape)
+        print("Caption shape:", harmony.shape)
         output = self.decoder(melody, harmony)
         # print("output shape:")
         # print(np.shape(output))
@@ -52,7 +54,7 @@ class AccompanimentModel(tf.keras.Model):
 
         for index, end in enumerate(range(batch_size, len(train_captions)+1, batch_size)):
             start = end - batch_size
-            batch_image_features = shuffled_image_features[start:end, :]
+            batch_image_features = shuffled_image_features[start:end, 1:]
             decoder_input = shuffled_captions[start:end, :-1]
             decoder_labels = shuffled_captions[start:end, 1:]
 
@@ -114,7 +116,7 @@ class AccompanimentModel(tf.keras.Model):
 
             ## Get the current batch of data, making sure to try to predict the next word
             start = end - batch_size
-            batch_image_features = test_image_features[start:end, :]
+            batch_image_features = test_image_features[start:end, 1:]
             decoder_input = test_captions[start:end, :-1]
             decoder_labels = test_captions[start:end, 1:]
 

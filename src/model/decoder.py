@@ -16,7 +16,8 @@ class TransformerDecoder(tf.keras.Model):
         self.image_embedding = tf.keras.layers.Dense(hidden_size, activation = 'relu')
 
         # Define positional encoding to embed and offset layer for language:
-        self.encoding = PositionalEncoding(vocab_size, hidden_size, window_size)
+        self.input_encoding = PositionalEncoding(vocab_size, hidden_size, window_size)
+        self.output_encoding = PositionalEncoding(vocab_size, hidden_size, window_size)
 
         # Define transformer decoder layer:
         self.decoder = TransformerBlock(hidden_size)
@@ -25,9 +26,10 @@ class TransformerDecoder(tf.keras.Model):
         self.classifier = tf.keras.layers.Dense(vocab_size)
 
     def call(self, encoded_images, captions):
-        img_embeds = self.image_embedding(tf.expand_dims(encoded_images, 1))
+        # img_embeds = self.image_embedding(tf.expand_dims(encoded_images, 1))
+        img_embeds = self.input_encoding(encoded_images)
         # print("got img_embeds")
-        capt_embeds = self.encoding(captions)
+        capt_embeds = self.output_encoding(captions)
         # print("got capt_embeds")
         # print(np.shape(img_embeds), np.shape(capt_embeds))
         decode_out = self.decoder(capt_embeds, img_embeds)
