@@ -15,8 +15,12 @@ import tensorflow as tf
 from typing import Optional
 from types import SimpleNamespace
 
+os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
 
+# Check the number of available GPUs
+num_gpus = len(tf.config.experimental.list_physical_devices('GPU'))
+print(f"Number of GPUs available: {num_gpus}")
 
 
 tf.compat.v1.enable_eager_execution() # Required to not break tf.where for mask for some reason
@@ -52,9 +56,9 @@ def main(args):
 
     ##############################################################################
     ## Data Loading: These are lists of lists of ID integers. Need to fit them through an embedding layer.
-    with open('../final_input_ids.pkl', 'rb') as f:
+    with open('../final_input_ids_maestro.pkl', 'rb') as f:
         input_tokens = pickle.load(f)
-    with open('../final_label_ids.pkl', 'rb') as f:
+    with open('../final_label_ids_maestro.pkl', 'rb') as f:
         label_tokens = pickle.load(f)
     with open('../tokenizer.pkl', 'rb') as f:
         tokenizer = pickle.load(f)
@@ -67,16 +71,20 @@ def main(args):
     
     word2idx = vocab
     idx2word = inv_vocab
-
     input = np.array(input_tokens)
     label = np.array(label_tokens)
+    # Shuffling the input and label arrays with the same indices to maintain alignment
+    indices = np.arange(len(input))
+    np.random.shuffle(indices)
+    input = input[indices]
+    label = label[indices]
+    print("Data shuffled!")
 
-    split1 = int(l * 0.6)
-    split2 = int(l * 0.8)
-    train_input = input[split1:split2]
-    train_label = label[split1:split2]
-    test_input = input[split2:]
-    test_label = label[split2:]
+    split = int(l * 0.8)
+    train_input = input[:split]
+    train_label = label[:split]
+    test_input = input[split:]
+    test_label = label[split:]
     print("Data preprocessed!")
 
     train_input  = train_input

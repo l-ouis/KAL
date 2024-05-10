@@ -40,6 +40,8 @@ for (input, label) in zip(input_tokens_list, label_tokens_list):
 
         # If the id is between 5 and 92 it is a pitch, so transpose it from range(-6, 6).
         for (input_sequence, label_sequence) in zip(input_batches, label_batches):
+            if any(id in range(197, 258) for id in input_sequence) or any(id in range(197, 258) for id in label_sequence):
+                continue
             input_sequence = [258] + input_sequence
             label_sequence = [258] + label_sequence
             for j in range(-6, 6):
