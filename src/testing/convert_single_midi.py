@@ -6,23 +6,22 @@ from miditok import REMI, TokenizerConfig
 from symusic import Score
 import pickle
 
-# What we need to make:
-# Dictionary relating each token to a np array
-# Strip each token 
+# Converts a single MIDI to a token sequence
 
-
-with open('tokenizer.pkl', 'rb') as f:
+# Specify tokenizer here
+with open('src/data/generated/maestro/tokenizer.pkl', 'rb') as f:
     tokenizer = pickle.load(f)
 
-file_path = "untitled.mid"
+# Specify file here
+file_path = "testing/test_midis/untitled.mid"
 count = 0
 final_input_ids = []
 input_score = Score(file_path)
 input_tokens = tokenizer(input_score)[0]
-print(input_tokens)
 input_ids = input_tokens.ids
-print(input_ids)
 input_ids = [input_ids[i] for i in range(len(input_ids)-1) if input_ids[i] != 4 or input_ids[i] != input_ids[i+1]]
+
+# Dupe input IDs until it meets correct length
 while len(input_ids) < 256:
     input_ids.extend(input_ids)
 
@@ -32,7 +31,7 @@ input_ids = [258] + input_ids
 test_input_ids = [input_ids]
 
 # Save final_input_ids and final_label_ids to a pickled file
-with open('test_input_ids.pkl', 'wb') as f:
+with open('src/testing/test_ids/test_input_ids.pkl', 'wb') as f:
     pickle.dump(test_input_ids, f)
 
 print("Successfully parsed test file")

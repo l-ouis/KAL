@@ -1,2 +1,8 @@
-src/data/raw/*
+src/data/generated/lakh/*
+src/data/generated/maestro/*
+src/data/maestro_dataset/*
+src/data/lakh_dataset/*
+src/temp/*
+src/stats/*
+
 *.pkl

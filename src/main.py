@@ -56,11 +56,11 @@ def main(args):
 
     ##############################################################################
     ## Data Loading: These are lists of lists of ID integers. Need to fit them through an embedding layer.
-    with open('../final_input_ids_maestro.pkl', 'rb') as f:
+    with open('src/data/generated/maestro/final_input_ids.pkl', 'rb') as f:
         input_tokens = pickle.load(f)
-    with open('../final_label_ids_maestro.pkl', 'rb') as f:
+    with open('src/data/generated/maestro/final_label_ids.pkl', 'rb') as f:
         label_tokens = pickle.load(f)
-    with open('../tokenizer.pkl', 'rb') as f:
+    with open('src/data/generated/maestro/tokenizer.pkl', 'rb') as f:
         tokenizer = pickle.load(f)
     print("Data loaded!")
 
@@ -132,9 +132,9 @@ def main(args):
             model, train_input, train_label, 0, args, 
             valid = (test_input, test_label)
         )
-        with open('model_stats.pkl', 'wb') as f:
+        with open('src/stats/model_stats.pkl', 'wb') as f:
             pickle.dump(model_stats, f)
-        print("Model statistics saved to model_stats.pkl")
+        print("Model statistics saved to src/stats/model_stats.pkl")
         print("Model trained!")
         # model.fit(train_input, train_label, batch_size=args.batch_size, epochs=args.epochs)
         if args.chkpt_path: 
