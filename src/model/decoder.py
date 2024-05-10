@@ -28,12 +28,7 @@ class TransformerDecoder(tf.keras.Model):
     def call(self, encoded_images, captions):
         # img_embeds = self.image_embedding(tf.expand_dims(encoded_images, 1))
         img_embeds = self.input_encoding(encoded_images)
-        # print("got img_embeds")
         capt_embeds = self.output_encoding(captions)
-        # print("got capt_embeds")
-        # print(np.shape(img_embeds), np.shape(capt_embeds))
         decode_out = self.decoder(capt_embeds, img_embeds)
-        # print("got decode_out")
         logits = self.classifier(decode_out)
-        # print("got logits")
         return logits
